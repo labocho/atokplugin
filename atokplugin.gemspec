@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = ATOKPlugin::VERSION
   spec.authors       = ["labocho"]
   spec.email         = ["labocho@penguinlab.jp"]
-  spec.summary       = %q{TODO: Write a short summary. Required.}
-  spec.description   = %q{TODO: Write a longer description. Optional.}
+  spec.summary       = %q{ATOK Direct Plugin development tool}
+  spec.description   = %q{ATOK Direct Plugin development tool}
   spec.homepage      = ""
   spec.license       = "MIT"
 
