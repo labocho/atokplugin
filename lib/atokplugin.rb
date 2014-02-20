@@ -1,6 +1,7 @@
 require "atokplugin/version"
-require "thor"
 require "erb"
+require "yaml"
+require "ostruct"
 
 module ATOKPlugin
   require "atokplugin/cli"
@@ -50,11 +51,26 @@ module ATOKPlugin
     File.basename(installer_path)
   end
 
+  def render_template(filename, variables)
+    b = OpenStruct.new(variables).instance_eval{ binding }
+    template(filename).result(b)
+  end
+
   def template(filename)
     ERB.new(File.read("#{template_path}/#{filename}"))
   end
 
-  def self.template_path
+  def template_path
     @template_path ||= "#{__dir__}/../template"
+  end
+
+  def config
+    @config ||= begin
+      unless File.exists?("atokplugin.yml")
+        STDERR.puts "Cannot locate atokplugin.yml"
+        exit 1
+      end
+      YAML.load_file("atokplugin.yml")
+    end
   end
 end

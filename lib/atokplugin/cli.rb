@@ -1,5 +1,5 @@
+require "thor"
 require "fileutils"
-require "erb"
 require "tmpdir"
 
 module ATOKPlugin
@@ -39,9 +39,9 @@ module ATOKPlugin
       puts "Create: #{name}/LICENSE.TXT"
       touch "#{name}/LICENSE.TXT"
 
-      puts "Create: #{name}/#{name}.xml"
-      metadata = ATOKPlugin.template("metadata.xml.erb").result(binding)
-      File.write("#{name}/#{name}.xml", metadata)
+      puts "Create: #{name}/atokplugin.yml"
+      config_file = ATOKPlugin.render_template("atokplugin.yml.erb", source: "#{name}.#{ext}", name: name)
+      File.write("#{name}/atokplugin.yml", config_file)
     end
 
     desc "debug", "Launch debugger"
@@ -52,6 +52,8 @@ module ATOKPlugin
         mkdir "#{tmp}/plugin"
         # ln_s does not work
         ln source_filename, "#{tmp}/plugin/#{source_filename}"
+
+        puts "Launch debugger"
         system "open --wait-apps #{tmp}/#{ATOKPlugin.debugger_filename}"
       end
     end
@@ -60,26 +62,39 @@ module ATOKPlugin
     def install
       Dir.mktmpdir do |tmp|
         puts "Create temporary directory: #{tmp}"
+
         cp_r ATOKPlugin.installer_path, tmp
+
         mkdir "#{tmp}/DATA"
         cp source_filename, "#{tmp}/DATA/#{source_filename}"
-        cp metadata_filename, "#{tmp}/DATA/#{metadata_filename}"
+        metadata = ATOKPlugin.render_template("metadata.xml.erb", config["plugin_info"])
+        File.write("#{tmp}/DATA/#{metadata_filename}", metadata)
         cp "LICENSE.TXT", "#{tmp}/LICENSE.TXT"
 
-        setupinfo = ATOKPlugin.template("setupinfo.xml.erb").result(binding)
+        setupinfo = ATOKPlugin.render_template("setupinfo.xml.erb", config["setup_info"].merge(plugin_file_name: config["source"]))
         File.write("#{tmp}/SETUPINFO.XML", setupinfo)
 
+        puts "Launch installer"
         system "open --wait-apps #{tmp}/#{ATOKPlugin.installer_filename}"
       end
     end
 
     private
+    def config
+      ATOKPlugin.config
+    end
+
     def source_filename
-      @source_filename ||= Dir.glob("*.{rb,py,pl}").to_a[0]
+      @source_filename ||= begin
+        unless File.exists?(config["source"])
+          STDERR.puts "#{config["source"]} not found.\nCheck atokplugin.yml"
+        end
+        config["source"]
+      end
     end
 
     def metadata_filename
-      @metadata_filename ||= Dir.glob("*.xml").to_a[0]
+      @metadata_filename ||= source_filename.gsub(/\.(rb|py|pl)$/, ".xml")
     end
   end
 end
