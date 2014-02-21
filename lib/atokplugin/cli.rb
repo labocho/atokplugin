@@ -42,6 +42,10 @@ module ATOKPlugin
       puts "Create: #{name}/atokplugin.yml"
       config_file = ATOKPlugin.render_template("atokplugin.yml.erb", source: "#{name}.#{ext}", name: name)
       File.write("#{name}/atokplugin.yml", config_file)
+
+      puts "Create: #{name}/.gitignore"
+      File.write("#{name}/.gitignore", "pkg\n")
+
     end
 
     desc "debug", "Launch debugger"
@@ -58,25 +62,32 @@ module ATOKPlugin
       end
     end
 
+    desc "build", "Build plugin to ./pkg"
+    def build
+      ATOKPlugin.config
+      puts "Remove directory: pkg"
+      rm_rf "pkg"
+      puts "Create directory: pkg"
+      mkdir "pkg"
+
+      cp_r ATOKPlugin.installer_path, "pkg"
+      mkdir "pkg/DATA"
+      cp source_filename, "pkg/DATA/#{source_filename}"
+      metadata = ATOKPlugin.render_template("metadata.xml.erb", config["plugin_info"])
+      File.write("pkg/DATA/#{metadata_filename}", metadata)
+      cp "LICENSE.TXT", "pkg/LICENSE.TXT"
+
+      setupinfo = ATOKPlugin.render_template("setupinfo.xml.erb", config["setup_info"].merge(plugin_file_name: config["source"]))
+      File.write("pkg/SETUPINFO.XML", setupinfo)
+
+      puts "Build succeeded"
+    end
+
     desc "install", "Install plugin"
     def install
-      Dir.mktmpdir do |tmp|
-        puts "Create temporary directory: #{tmp}"
-
-        cp_r ATOKPlugin.installer_path, tmp
-
-        mkdir "#{tmp}/DATA"
-        cp source_filename, "#{tmp}/DATA/#{source_filename}"
-        metadata = ATOKPlugin.render_template("metadata.xml.erb", config["plugin_info"])
-        File.write("#{tmp}/DATA/#{metadata_filename}", metadata)
-        cp "LICENSE.TXT", "#{tmp}/LICENSE.TXT"
-
-        setupinfo = ATOKPlugin.render_template("setupinfo.xml.erb", config["setup_info"].merge(plugin_file_name: config["source"]))
-        File.write("#{tmp}/SETUPINFO.XML", setupinfo)
-
-        puts "Launch installer"
-        system "open --wait-apps #{tmp}/#{ATOKPlugin.installer_filename}"
-      end
+      build
+      puts "Launch installer"
+      system "open --wait-apps pkg/#{ATOKPlugin.installer_filename}"
     end
 
     private
