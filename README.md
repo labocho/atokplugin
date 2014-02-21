@@ -9,8 +9,8 @@ atokplugin only tested on OSX Mavericks, ATOK 2013, Ruby 2.0+.
 ## Installation
 
 atokplugin requires ATOK Direct Plugin module.
-Please download from http://www.atok.com/useful/developer/api/
-and set its path to ATOK_TOOLS_ROOT environement variable.
+
+Please download from http://www.atok.com/useful/developer/api/ and set its path to `ATOK_TOOLS_ROOT` environement variable.
 
     # example
     $ export ATOK_TOOLS_ROOT=/path/to/adsapi26
@@ -24,6 +24,7 @@ And install atokplugin by git
 ## Tutorial
 
 `atokplugin new PLUGIN_NAME` makes plugin project directory named `PLUGIN_NAME`
+
 Optional `--lang` flag with `ruby`, `python`, or `perl` copies sample written by specified language.
 
     $ atokplugin new foo --lang python
@@ -77,3 +78,7 @@ Optional `--lang` flag with `ruby`, `python`, or `perl` copies sample written by
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## Other
+
+ATOK is registered trademark of JustSystems Corporation.
